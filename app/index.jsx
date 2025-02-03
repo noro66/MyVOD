@@ -1,9 +1,8 @@
 import { Link, router } from "expo-router";
-import { Text, View, ScrollView, Image } from "react-native";
+import { Text, View, ScrollView, Image, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../constants";
 import CustomButton from "../components/CustomButton";
-import { StatusBar } from "expo-status-bar";
 
 export default function Page() {
   return (
