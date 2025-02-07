@@ -1,11 +1,13 @@
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { images } from "../../constants";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { createUser } from "../../services/apiAuth";
+import { validateCredentials } from "../../utils/verifyEmailAndPassword";
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -15,8 +17,28 @@ const SignUp = () => {
   });
   const [isSubmiting, setIsSubmiting] = useState(false);
 
-  const submit = () => {
-    console.log(form);
+  const submit = async () => {
+    try {
+      validateCredentials(form.email, form.password);
+
+      if (!form.username) {
+        throw new Error("Username is required ❌");
+      }
+
+      console.log(form);
+      setIsSubmiting(true);
+
+      const responce = await createUser(form);
+      if (responce.status !== 200 || !responce.data.accessToken) {
+        throw new Error("Invalid credentials ❌");
+      }
+      // Set it as a global state...
+      router.replace("/home");
+    } catch (error) {
+      Alert.alert("Error", error.message || "Something went wrong ❌");
+    } finally {
+      setIsSubmiting(false);
+    }
   };
 
   return (
@@ -52,7 +74,7 @@ const SignUp = () => {
             keyBoardType="password"
           />
           <CustomButton
-            title="Signin"
+            title="Sign Up"
             handlePress={submit}
             containerStyles="mt-7"
             isLoading={isSubmiting}

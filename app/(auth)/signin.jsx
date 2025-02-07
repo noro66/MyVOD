@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, ScrollView, Image, Alert } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -6,6 +6,8 @@ import { images } from "../../constants";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import { Link } from "expo-router";
+import { login } from "../../services/apiAuth";
+import { validateSignIn } from "../../utils/verifyEmailAndPassword";
 
 const Signin = () => {
   const [form, setForm] = useState({
@@ -14,8 +16,21 @@ const Signin = () => {
   });
   const [isSubmiting, setIsSubmiting] = useState(false);
 
-  const submit = () => {
-    console.log(form);
+  const submit = async () => {
+    try {
+      validateSignIn(form.email, form.password);
+
+      setIsSubmiting(true);
+      const responce = await login(form);
+      if(responce.status !== 200 || !responce.data.accessToken){
+        throw new Error("Invalid credentials ❌");
+      }
+      router.replace("/home");
+    } catch (error) {
+      Alert.alert("Error", error.message || "Something went wrong ❌");
+    } finally {
+      setIsSubmiting(false);
+    }
   };
 
   return (
