@@ -8,11 +8,9 @@ export async function login({ email, password }) {
       email,
       password,
     });
-
-    if (response.status !== 200 || !response.data.accessToken) {
-      throw new Error("Invalid credentials ❌");
-    }
     await AsyncStorage.setItem("accessToken", response.data.accessToken);
+    console.log("data: ", response?.data);
+    AsyncStorage.setItem("accessToken", response?.data?.token);
   } catch (error) {
     throw new Error(error.response?.data?.message || "Login failed ❌");
   }
@@ -20,19 +18,13 @@ export async function login({ email, password }) {
 
 export async function getCurrentUser() {
   try {
-    const response = await axios.get(
-      `${API_URL}api/auth/current-user`,
-      getAuthHeaders()
-    );
+    const headers = await getAuthHeaders(); 
+    const response = await axios.get(`${API_URL}api/auth/me`, headers);
+    console.log(response?.data);
 
-    if (response.data && response.data.message) {
-      throw new Error(response.data.message);
-    }
-
-    return response.data;
+    return response?.data;
   } catch (error) {
-    console.error(error);
-    throw new Error(error);
+    throw new Error(error.response?.data?.message || error.message);
   }
 }
 
@@ -44,7 +36,6 @@ export async function getUsers(keyword = "") {
     });
     return response.data;
   } catch (error) {
-    console.error(error);
     throw new Error("Users could not be loaded");
   }
 }
@@ -57,6 +48,10 @@ export async function createUser(newUser) {
       newUser,
       getAuthHeaders()
     );
+    console.log("data: ", response?.data);
+    AsyncStorage.setItem("accessToken", response?.data?.token);
+
+    return response;
   } catch (error) {
     const errorMessage = error.response?.data?.message;
     console.error(errorMessage);
@@ -71,7 +66,7 @@ export async function deleteUser(id) {
       `${API_URL}api/auth/${id}`,
       getAuthHeaders()
     );
-    return response.data;
+    return response?.data;
   } catch (error) {
     console.error(error);
     throw new Error("User could not be deleted");

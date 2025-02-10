@@ -8,6 +8,7 @@ import CustomButton from "../../components/CustomButton";
 import { Link } from "expo-router";
 import { login } from "../../services/apiAuth";
 import { validateSignIn } from "../../utils/verifyEmailAndPassword";
+import { useGlobalContext } from "../../context/GlobalProvider";
 
 const Signin = () => {
   const [form, setForm] = useState({
@@ -15,16 +16,16 @@ const Signin = () => {
     password: "",
   });
   const [isSubmiting, setIsSubmiting] = useState(false);
+  const { setUser, setIsLogged } = useGlobalContext();
 
   const submit = async () => {
+    validateSignIn(form.email, form.password);
+    setIsSubmiting(true);
     try {
-      validateSignIn(form.email, form.password);
-
-      setIsSubmiting(true);
       const responce = await login(form);
-      if(responce.status !== 200 || !responce.data.accessToken){
-        throw new Error("Invalid credentials ❌");
-      }
+      setUser(responce.data);
+      setIsLogged(true);
+      Alert.alert("Success", "You have successfully logged in ✅");
       router.replace("/home");
     } catch (error) {
       Alert.alert("Error", error.message || "Something went wrong ❌");

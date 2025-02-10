@@ -8,6 +8,7 @@ import CustomButton from "../../components/CustomButton";
 import { Link, router } from "expo-router";
 import { createUser } from "../../services/apiAuth";
 import { validateCredentials } from "../../utils/verifyEmailAndPassword";
+import { useGlobalContext } from "../../context/GlobalProvider";
 
 const SignUp = () => {
   const [form, setForm] = useState({
@@ -16,23 +17,17 @@ const SignUp = () => {
     password: "",
   });
   const [isSubmiting, setIsSubmiting] = useState(false);
-
+  const { setUser, setIsLogged } = useGlobalContext();
   const submit = async () => {
+    validateCredentials(form.email, form.password);
+    if (!form.username) {
+      Alert.alert("Username is required ❌");
+    };
+    setIsSubmiting(true);
     try {
-      validateCredentials(form.email, form.password);
-
-      if (!form.username) {
-        throw new Error("Username is required ❌");
-      }
-
-      console.log(form);
-      setIsSubmiting(true);
-
       const responce = await createUser(form);
-      if (responce.status !== 200 || !responce.data.accessToken) {
-        throw new Error("Invalid credentials ❌");
-      }
-      // Set it as a global state...
+      setUser(responce.data);
+      setIsLogged(true);
       router.replace("/home");
     } catch (error) {
       Alert.alert("Error", error.message || "Something went wrong ❌");
